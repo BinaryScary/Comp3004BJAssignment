@@ -1,11 +1,11 @@
 package core;
 
-public class gameStart {
+public class GameStart {
 
 	public static void main(String[] args) {
-		//initGame start = new initGame('c');
-
-
+		GameLogic start = new GameLogic('c');
+		
+		System.out.println("success");
 	}
 
 }

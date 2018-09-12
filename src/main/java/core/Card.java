@@ -1,17 +1,25 @@
 package core;
-public class card {
+public class Card {
 	public static enum suit{ 
 		DIAMONDS,HEARTS,SPADES,CLUBS;
 	}
 
 	public static enum rank{ 
-		ACE,TWO,THREE,FOUR,FIVE,SIX,SEVEN,EIGHT,NINE,TEN,JACK,QUEEN,KING;
+		ACE(1),TWO(2),THREE(3),FOUR(4),FIVE(5),SIX(6),SEVEN(7),EIGHT(8),NINE(9),TEN(10),JACK(10),QUEEN(10),KING(10);
+		private final int val;
+
+		rank(int val){
+			this.val = val;
+		}
+		public int getVal() {
+			return this.val;
+		}
 	}
 	
 	private rank cardRank;
 	private suit cardSuit;
 	
-	public card(rank r, suit s){
+	public Card(rank r, suit s){
 		cardRank = r;
 		cardSuit = s;
 	}
@@ -39,5 +47,4 @@ public class card {
 			return 'B';
 		}
 	}
-	//TODO add junit test then git submit
 }
