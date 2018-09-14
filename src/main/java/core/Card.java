@@ -68,6 +68,11 @@ public class Card {
 	}
 	
 	@Override
+	public String toString() {
+		return cardRank +" "+ cardSuit;
+	}
+
+	@Override
 	public boolean equals(Object c) {
 		if(this.cardRank == ((Card)c).cardRank && this.cardSuit == ((Card)c).cardSuit) {
 			return true;
