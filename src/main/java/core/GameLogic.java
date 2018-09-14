@@ -12,7 +12,7 @@ public class GameLogic {
 	private Card deck[];
 	private int deckPos;
 	
-	private File testFile = null;
+	private File testFile;
 
 	private Card playerHand[];
 	private Card playerSplit[];
@@ -20,6 +20,7 @@ public class GameLogic {
 	private Card dealerSplit[];
 	
 	private char playerMove[];
+	private String winner;
 
 	private UserInterface ui;
 
@@ -29,8 +30,16 @@ public class GameLogic {
 		if(chosenUI == 'c') {
 			ui = new CLI();
 		}else if(chosenUI == 'g') {
-			
+			//TODO GUI
 		}
+		
+		// set all variables that have getters to null so no nullpointer errors occur
+		playerHand = null;
+		playerSplit = null;	
+		dealerHand = null;	
+		dealerSplit = null;	
+		testFile = null;
+		winner = null;
 	}
 	
 	public void gameInit() {
@@ -47,85 +56,162 @@ public class GameLogic {
 			}
 			if(choice == 'y') {
 				File file = new File(ui.responseFile("Enter your filename: "));
-				if(initDeck(file) == -1) {
+				if(initDeck(file) <= -1) {
 					return;
 				}
 			}else {
 				initDeck();
 			}
 		}else {
-			initDeck(testFile);
+			if(initDeck(testFile) <= -1) {
+				return;
+			}
 		}
 
 		initHands();
 		deal();
 		
 		if(hasBlackjack(dealerHand)) {
+			ui.message("-Dealer has blackjack-");
+			displayScore();
 			ui.outcome('d');
+			winner = "Dealer BlackJack";
 			return;
-		}else if(hasBlackjack(playerHand) && getHandValue(dealerHand) > 16) {
+		}else if(hasBlackjack(playerHand)) {
+			ui.message("Dealer hand: ");
+			ui.displayHand(dealerHand);
+			ui.message("-Player has blackjack-");
+			displayScore();
 			ui.outcome('p');
+			winner = "Player BlackJack";
 			return;
 		}
 
 		if(size(playerMove) > 0) {
-
 			err = fileTurn();
 			if(err == -1) {
-				ui.outcome('d');
+				outcome();
+				return;
 			}else if(err == -2) {
 				return;
 			}
 		}else if(playerTurn() == -1) {
-			ui.outcome('d');
+			outcome();
+			return;
 		}
 
-		//TODO Create test cases
-		//TODO dealer ai
+		ui.message("Dealers hand: ");
+		err = dealerTurn();
+		if(err == -1) {
+			outcome();
+			return;
+		}else if(err == -2) {
+			outcome();
+			return;
+		}
+		
+		outcome();
+	}
+	
+	public String getWinner() {
+		return winner;
+	}
+	
+	public Card[] getDealerSplit() {
+		return dealerSplit;
+	}
+
+	public Card[] getDealerHand() {
+		return dealerHand;
+	}
+
+	public Card[] getPlayerSplit() {
+		return playerSplit;
+	}
+
+	public Card[] getPlayerHand() {
+		return playerHand;
+	}
+	
+	public File getTestFile() {
+		return testFile;
+	}
+	
+	public void setTestCase(File f) {
+		if(f != null) {
+			testFile = f;
+		}
+	}
+	
+	public char[] getPlayerMoves() {
+		if(size(playerMove) == 0) {
+			return null;
+		}
+		return playerMove;
+	}
+
+	private void displayScore() {
+		if(bestHandValue(dealerHand, dealerSplit) != 0) {
+			ui.message("Dealers score: " + bestHandValue(dealerHand, dealerSplit));
+		}
+		if(bestHandValue(playerHand, playerSplit) != 0) {
+			ui.message("Players score: " + bestHandValue(playerHand, playerSplit));
+		}
 	}
 	
 	private int fileTurn() {
+		int moveReWrite = -1; //foreach iterator can't explicitly access array variable
+		
 		if(playerMove[0] == 'D') {
 			if(playerHand[0].getRank() == playerHand[1].getRank()) {
 				playerSplit[0] = playerHand[1];
 				playerHand[1] = null;
-
+	
 				if((playerHand[size(playerHand)] = deck[deckPos]) == null) {
-					ui.message("ERROR not enough cards in file");
-					return -2;
+					nextDeckCheck();
+					playerHand[size(playerHand)] = deck[deckPos];
+					//return -2;
 				}
 				deckPos++;
 				if((playerSplit[size(playerSplit)] = deck[deckPos]) == null) {
-					ui.message("ERROR not enough cards in file");
-					return -2;
+					nextDeckCheck();
+					playerSplit[size(playerSplit)] = deck[deckPos];
+					//return -2;
 				}
 				deckPos++;
-
+	
 				ui.message("Player hands: ");
 				ui.displayHand(playerHand);
 				ui.displayHand(playerSplit);
-
+	
 				ui.message("First hand: ");
 				for(char m : playerMove) {
+					moveReWrite++;
 					switch(m) {
 						case 'H':
 							if((playerHand[size(playerHand)] = deck[deckPos]) == null) {
-								ui.message("ERROR not enough cards in file");
-								return -2;
+								nextDeckCheck();
+								playerHand[size(playerHand)] = deck[deckPos];
+								//return -2;
 							}
 							deckPos++;
 							ui.displayHand(playerHand);
-
+	
 							if(getHandValue(playerHand) > 21){
-								ui.message("You have busted");
-								return -1;
+								playerMove[moveReWrite] = 'X';
+								break;
+							}else {
+								playerMove[moveReWrite] = 'X';
+								continue;
 							}
-							m = 'X';
-							break;
 						case 'S':
-							m = 'X';
+							playerMove[moveReWrite] = 'X';
 							break;
+						case 'D':
+							playerMove[moveReWrite] = 'X';
+							continue;
 					}
+					break;
 				}
 				ui.displayHand(playerHand);
 				
@@ -134,14 +220,15 @@ public class GameLogic {
 					switch(m) {
 						case 'H':
 							if((playerSplit[size(playerSplit)] = deck[deckPos]) == null) {
-								ui.message("ERROR not enough cards in file");
-								return -2;
+								nextDeckCheck();
+								playerSplit[size(playerSplit)] = deck[deckPos];
+								//return -2;
 							}
 							deckPos++;
 							ui.displayHand(playerSplit);
-
+	
 							if(getHandValue(playerSplit) > 21){
-								ui.message("You have busted");
+								ui.message("Player have busted");
 								return -2;
 							}
 							break;
@@ -159,12 +246,13 @@ public class GameLogic {
 				switch(m) {
 					case 'H':
 						if((playerHand[size(playerHand)] = deck[deckPos]) == null) {
-								ui.message("ERROR not enough cards in file");
-								return -2;
+								nextDeckCheck();
+								playerHand[size(playerHand)] = deck[deckPos];
+								//return -2;
 						}
 						deckPos++;
 						ui.displayHand(playerHand);
-
+	
 						if(getHandValue(playerHand) > 21){
 							ui.message("You have busted");
 							return -1;
@@ -180,33 +268,142 @@ public class GameLogic {
 		return 0;
 	}
 	
-	public Card[] getPlayerSplit() {
-		return playerSplit;
+	private void outcome() {
+		if(bestHandValue(playerHand, playerSplit) == 0  || bestHandValue(playerHand, playerSplit) > 21) {
+			ui.message("-Player busted-");
+			displayScore();
+			ui.outcome('d');
+			winner = "Player busted";
+		}else if(bestHandValue(dealerHand, dealerSplit) == 0 || bestHandValue(dealerHand, dealerSplit) > 21) {
+			ui.message("-Dealer busted-");
+			displayScore();
+			ui.outcome('p');
+			winner = "Dealer busted";
+		}else if(bestHandValue(dealerHand,dealerSplit) >= bestHandValue(playerHand, playerSplit)){
+			displayScore();
+			ui.outcome('d');
+			winner = "Dealer Won";
+		}else if(bestHandValue(dealerHand,dealerSplit) < bestHandValue(playerHand, playerSplit)){
+			displayScore();
+			ui.outcome('p');
+			winner = "Player Won";
+		}
+	}
+	
+	private int bestHandValue(Card[] hand1, Card[] hand2) {
+		int values[] = {getHighestValue(hand1),getHighestValue(hand2), getHandValue(hand1), getHandValue(hand2)};
+		int best = 0;
+		for(int i : values) {
+			if(i > best && i < 22) {
+				best = i;
+			}
+		}
+		return best;
+	}
+	
+	public String cardsToString(Card[] hand) {
+		String str = "";
+		
+		for(Card c : hand) {
+			if(c != null) {
+				str += c.toString() + " ";
+			}
+		}
+		str = str.substring(0, str.length() - 1);
+
+		return str;
+	}
+	
+	public int getHighestValue(Card[] hand) {
+		if(hasAce(hand) > 0 && (getHandValue(hand) + 10) <= 21) {
+			return (getHandValue(hand)+10);
+		}
+		return getHandValue(hand);
+	}
+	
+	private int dealerTurn() {
+		// return -1 if both bust
+		int bust = 0;
+		if(dealerHand[0].getRank() != dealerHand[1].getRank()) {
+			dealerHitStand(dealerHand);
+		}else if(getHandValue(dealerHand) <= 17) {
+			dealerSplit[0] = dealerHand[1];
+			dealerHand[1] = null;
+
+			dealerHand[size(dealerHand)] = deck[deckPos];
+			if(dealerHand == null) {
+				nextDeckCheck();
+				dealerHand[size(dealerHand)] = deck[deckPos];
+			}
+			deckPos++;
+			dealerSplit[size(dealerSplit)] = deck[deckPos];
+			if(dealerSplit == null) {
+				nextDeckCheck();
+				dealerSplit[size(dealerSplit)] = deck[deckPos];
+			}
+			deckPos++;
+			ui.message("First Hand: ");
+			bust += dealerHitStand(dealerHand);
+			ui.message("Second Hand: ");
+			bust += dealerHitStand(dealerSplit);
+			if(bust == -2) {
+				return -1;
+			}
+		}
+		return 0;
+	}
+	private int dealerHitStand(Card[] hand) {
+		ui.displayHand(hand);
+		while(dealerHit(hand)) {
+			if(deckPos >= size(deck)) {
+				nextDeckCheck();
+				//return -2;
+			}
+			hand[size(hand)] = deck[deckPos];
+			deckPos++;
+			ui.displayHand(hand);
+		}
+		if(getHandValue(hand) > 21) {
+			return -1;
+		}
+		return 0;
+	}
+	
+	private boolean dealerHit(Card[] hand) {
+		//no need to check for 17 because getHandValue always checks hard case
+		if(getHighestValue(hand) < 17) {
+			return true;
+		}else if(getHighestValue(hand) == 17 && hasAce(hand) > 0) {
+			return true;
+		}
+		
+		
+		return false;
 	}
 
-	public Card[] getPlayerHand() {
-		return playerHand;
-	}
-	
-	public void setTestCase(File f) {
-		testFile = f;
-	}
-	
 	private int playerTurn() {
 		char choice = '*';
 		int i = 0;
 		
 		if(playerHand[0].getRank() == playerHand[1].getRank()) {
 			while(!hasChar(choice = ui.response("Would you like to split?(y,n): "), polar)) {
-				ui.message("*ERROR* choice invalid");
+				ui.message("*ERROR choice invalid");
 			}
 			if(choice == 'y') {
 				playerSplit[0] = playerHand[1];
 				playerHand[1] = null;
 
 				playerHand[size(playerHand)] = deck[deckPos];
+				if(playerHand == null) {
+					nextDeckCheck();
+					playerHand[size(playerHand)] = deck[deckPos];
+				}
 				deckPos++;
 				playerSplit[size(playerSplit)] = deck[deckPos];
+				if(playerSplit == null) {
+					nextDeckCheck();
+					playerSplit[size(playerSplit)] = deck[deckPos];
+				}
 				deckPos++;
 
 				ui.message("Player hands: ");
@@ -238,7 +435,7 @@ public class GameLogic {
 		char choice = '*';
 		while(choice != 's') {
 			while(!hasChar(choice = ui.response("Hit(h) or Stand(s)?: "), choices)) {
-				ui.message("*ERROR* choice invalid");
+				ui.message("*ERROR choice invalid");
 			}
 			
 			if(choice == 'h') {
@@ -255,7 +452,7 @@ public class GameLogic {
 		return 0;
 	}
 	
-	private int size(Card[] cards) {
+	public int size(Card[] cards) {
 		int count = 0;
 		for(Card c: cards) {
 			if(c != null) {
@@ -314,16 +511,30 @@ public class GameLogic {
 	}
 	
 	private void deal() {
+		nextDeckCheck();
 		playerHand[0] = deck[0];
+		deckPos++;
+		nextDeckCheck();
 		playerHand[1] = deck[1];
+		deckPos++;
+		nextDeckCheck();
 		dealerHand[0] = deck[2];
+		deckPos++;
+		nextDeckCheck();
 		dealerHand[1] = deck[3];
-		deckPos += 4;
+		deckPos++;
 		
 		ui.message("Dealer hand: ");
 		ui.displayDealerHand(dealerHand);
 		ui.message("Player hand: ");
 		ui.displayHand(playerHand);
+	}
+	
+	private void nextDeckCheck() {
+		if(deck[deckPos] == null) {
+			ui.message("ERROR not enough cards in file, filling deck");
+			initDeck();
+		}
 	}
 	private void shuffle() {
 		Random rNum = new Random();
@@ -341,7 +552,7 @@ public class GameLogic {
 	private int initDeck(File file) {
 		deck = new Card[52];
 		BufferedReader br;
-		String cards;
+		String cards = null;
 		String cardsArr[];
 		char[] choices = {'H','S','D'};
 		
@@ -371,7 +582,7 @@ public class GameLogic {
 		}
 		
 		System.out.println(cards);
-		if(!cards.isEmpty()) {
+		if(cards != null && !cards.isEmpty()) {
 			cardsArr = cards.split("\\s+");
 			
 			for(String s : cardsArr) {
@@ -387,9 +598,13 @@ public class GameLogic {
 					}
 				}
 			}
+			if(size(deck) == 0) {
+				ui.message("No cards given, filling deck...");
+				initDeck();
+			}
 		}else {
-			ui.message("No cards in file");
-			return -1;
+			ui.message("No cards or movements in file");
+			return -2;
 		}
 		
 		
@@ -441,6 +656,7 @@ public class GameLogic {
 
 	private void initDeck() {
 		deck = new Card[52];
+		deckPos = 0;
 		int i = 0;
 		
 		for (Card.suit s : Card.suit.values()) {
