@@ -3,24 +3,25 @@ package core;
 import java.util.Scanner;
 
 public class CLI implements UserInterface {
+	Scanner userInput = new Scanner(System.in);
 
 	public void message(String mes) {
 		System.out.println(mes);
 	}
 
 	public char response(String mes) {
-		System.out.println(mes);
+		System.out.print(mes);
 		
-		Scanner userInput = new Scanner(System.in);
 		char u = userInput.next().charAt(0);
-		userInput.close();
+		userInput.nextLine(); //consume \n
+		//userInput.close(); can't close due to System.in being unable to reopen
 
 		return u;
 	}
 
 	public void displayHand(Card[] hand) {
 		String cliHand = "";
-		for(int i = 0; i < hand.length; i++) {
+		for(int i = 0; hand[i] != null; i++) {
 			cliHand += "[" + hand[i].getRank() + " of " + hand[i].getSuit() + "] ";
 		}
 		
@@ -39,11 +40,21 @@ public class CLI implements UserInterface {
 
 	public void displayDealerHand(Card[] hand) {
 		String cliHand = "";
-		if(hand.length > 0) {
+		if(hand[0] != null) {
 			cliHand += "[" + hand[0].getRank() + " of " + hand[0].getSuit() + "] [***** of *****]";
 		}	
 
 		System.out.println(cliHand);
+	}
+
+	public String responseFile(String mes) {
+
+		System.out.print(mes);
+		
+		String s = "";
+		s += userInput.nextLine();
+
+		return s;
 	}
 
 }
