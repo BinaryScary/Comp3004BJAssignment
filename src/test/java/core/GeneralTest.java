@@ -1,5 +1,6 @@
 package core;
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertNotEquals;
 
 import java.io.File;
 
@@ -9,6 +10,36 @@ import junit.framework.TestCase;
 
 public class GeneralTest extends TestCase {
 	
+	public void testShuffle() {
+		System.out.println("");
+		System.out.println("Shuffle test...");
+		System.out.println("");
+		
+		File file = new File("src/test/resources/testShuffle");
+
+		GameLogic start = new GameLogic('c');
+		start.setTestCase(file);
+		start.initDeck();
+		Card[] c1 = start.getDeck();
+		start.gameInit();
+		
+		assertNotSame(c1,start.getDeck());
+	}
+
+	public void testDeck() {
+		System.out.println("");
+		System.out.println("Deck test...");
+		System.out.println("");
+		
+		File file = new File("src/test/resources/testDeck");
+
+		GameLogic start = new GameLogic('c');
+		start.setTestCase(file);
+		start.gameInit();
+		
+		assertEquals(52,start.size(start.getDeck()));
+	}
+
 	public void testIncorrectFile() {
 		System.out.println("");
 		System.out.println("Score test...");

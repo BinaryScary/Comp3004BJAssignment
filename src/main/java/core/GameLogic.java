@@ -149,6 +149,10 @@ public class GameLogic {
 		}
 		return playerMove;
 	}
+	
+	public Card[] getDeck() {
+		return deck;
+	}
 
 	private void displayScore() {
 		if(bestHandValue(dealerHand, dealerSplit) != 0) {
@@ -654,7 +658,7 @@ public class GameLogic {
 		return count;
 	}
 
-	private void initDeck() {
+	public void initDeck() {
 		deck = new Card[52];
 		deckPos = 0;
 		int i = 0;
