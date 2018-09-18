@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Random;
 
+import javafx.scene.layout.Pane;
+
 public class GameLogic {
 	private Card deck[];
 	private int deckPos;
@@ -30,7 +32,7 @@ public class GameLogic {
 		if(chosenUI == 'c') {
 			ui = new CLI();
 		}else if(chosenUI == 'g') {
-			//TODO GUI
+			ui = new GUI();
 		}
 		
 		// set all variables that have getters to null so no nullpointer errors occur

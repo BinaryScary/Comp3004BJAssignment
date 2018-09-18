@@ -1,4 +1,10 @@
 package core;
+
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+
+import javafx.scene.image.Image;
+
 public class Card {
 	public static enum suit{ 
 		DIAMONDS('D'),HEARTS('H'),SPADES('S'),CLUBS('C');
@@ -32,10 +38,18 @@ public class Card {
 	
 	private rank cardRank;
 	private suit cardSuit;
+	private Image img;
 	
 	public Card(rank r, suit s){
 		cardRank = r;
 		cardSuit = s;
+		img = null;
+//		try {
+//			img = new Image(new FileInputStream("src/main/resources/Cards/"+s.getName()+r.getName()+".png"));
+//		} catch (FileNotFoundException e) {
+//			e.printStackTrace();
+//			System.out.println("Card Image not found");
+//		}
 	}
 	
 	public Card() {
@@ -49,6 +63,10 @@ public class Card {
 
 	public void setRank(rank r) {
 		cardRank = r;
+	}
+	
+	public Image getImage() {
+		return img;
 	}
 	
 	public suit getSuit() {

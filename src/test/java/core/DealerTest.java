@@ -103,7 +103,7 @@ public class DealerTest extends TestCase {
 		start.setTestCase(file);
 		start.gameInit();
 	
-		assertEquals("ACE SPADES FIVE SPADES FOUR DIAMONDS", start.cardsToString(start.getDealerHand()));
+		assertEquals("ACE SPADES SIX SPADES FOUR DIAMONDS", start.cardsToString(start.getDealerHand()));
 	}
 
 	public void testDealerHit() {

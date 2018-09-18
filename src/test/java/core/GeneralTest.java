@@ -84,6 +84,19 @@ public class GeneralTest extends TestCase {
 		assertNotNull(start.getPlayerHand());
 	}
 
+	public void testMultiAce() {
+		System.out.println("");
+		System.out.println("Muliple Ace Test...");
+		System.out.println("");
+
+		File file = new File("src/test/resources/testMultiAce");
+
+		GameLogic start = new GameLogic('c');
+		start.setTestCase(file);
+		start.gameInit();
+		assertEquals(12, start.getHighestValue(start.getPlayerHand()));
+	}
+
 	public void testPlayerCards() {
 		System.out.println("");
 		System.out.println("Player Cards Test...");
@@ -129,6 +142,7 @@ public class GeneralTest extends TestCase {
 
 		GameLogic start = new GameLogic('c');
 		start.setTestCase(file);
+		//remove file when wanting to test console input
 		start.gameInit();
 		assertNull(start.getPlayerHand());
 	}
